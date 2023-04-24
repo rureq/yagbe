@@ -12,14 +12,7 @@
 #define H_ID 0b100;
 #define L_ID 0b101;
 
-struct registers{
-    uint8_t A, B, C, D, E, F, H, L;
-    uint16_t PC, SP; 
-};
-
-typedef struct registers Registers;
-
-union Uregisters{
+union Registers{
     struct regs{
         uint8_t A, F, B, C, D, E, H, L;
     } regs;
@@ -27,8 +20,6 @@ union Uregisters{
         uint16_t AF, BC, DE, HL;
     } dregs;
 };
-
-
 
 struct flags{
     bool Z, N, H, CY;
@@ -38,7 +29,7 @@ uint8_t readbyte(uint8_t *gamefile, uint32_t address){
     return gamefile[address];
 };
 
-void operate(uint8_t opcode, byte Loperand, char Roperand, Registers *regs){
+void operate(uint8_t opcode, byte Loperand, char Roperand, union Registers *regs){
     if (opcode == 0x01)
     {
         
