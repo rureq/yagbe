@@ -82,7 +82,7 @@ void readROMNEW(char *filename, uint8_t *memory){
         rewind(romFile); 
         fread(memory,1,length,romFile);
         fclose(romFile);
-        printf("%x\n",memory[1]);
+        printf("%x\n",memory[0]);
     } 
     else{
         printf("Error reading ROM file\n");
