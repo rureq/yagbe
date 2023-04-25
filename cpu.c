@@ -46,7 +46,12 @@ uint16_t read2bytes(uint8_t *gamefile, uint32_t address){
     return twobytes;
 }
 
-void writebyte();
+void writebyte(uint16_t address, uint8_t *memory, uint8_t data){
+    memory[address] = data;
+};
+void write2bytes(uint16_t address, uint8_t *memory, uint16_t data){
+    
+};
 
 uint8_t getop(uint8_t *gamefile, union Registers *regs){
     return gamefile[regs->dregs.PC++];
@@ -72,18 +77,17 @@ void operate(uint8_t opcode, char Loperand, char Roperand, union Registers *regs
     }
     return;
 }
-void readROMNEW(char *filename, uint8_t *memory){
+void readROMNEW(char *filename, uint8_t *memory, long int *len){
     
     FILE* romFile = fopen(filename, "rb");
     if (romFile != NULL){
-        printf("beep\n");
         fseek(romFile, 0, SEEK_END);
         long int length = ftell(romFile);
+        *len = length;
         rewind(romFile); 
         fread(memory,1,length,romFile);
         fclose(romFile);
-        printf("%x\n",memory[0]);
-        printf("length %i\n", length);
+        printf("ROM size: %i\n", length);
     } 
     else{
         printf("Error reading ROM file\n");
@@ -91,7 +95,7 @@ void readROMNEW(char *filename, uint8_t *memory){
 
 }
 
-uint8_t *readROM(char * filename, long int * size){
+uint8_t *readROM(char *filename, long int *size){
     FILE* romFile = fopen(filename, "rb");
     uint8_t * pointer = NULL; 
     if (romFile != NULL){
@@ -112,12 +116,17 @@ uint8_t *readROM(char * filename, long int * size){
 
 uint8_t *initRAM(){
     uint8_t *RAM = malloc(sizeof(uint8_t)*16000);
+     if(!*RAM){
+        printf("Error allocating memory\n");
+        return NULL;
+    }
     return RAM;
 };
 uint8_t *initmemory(){
-    uint8_t *mem = malloc(sizeof(uint8_t)*0xFFFFF);
+    uint8_t *mem = malloc(sizeof(uint8_t)*0xFFFF);
     if(!*mem){
-        printf("asfasf");
+        printf("Error allocating memory\n");
+        return NULL;
     }
     return mem;
 };
@@ -125,30 +134,33 @@ uint8_t *initmemory(){
 int main(){
     union Registers registers;
     uint8_t *mem = initmemory();
-    readROMNEW("snake.gb", mem);
-    
     long int length = 0;
-    //uint8_t *rom = readROM("Pokemon.gb", &length);
-       printf("Snake ROM:\n");
-//       for (int i = 0; i <length; i++){
-//        printf("0x%x ",rom[i]);
-//         if((i+1)%16 == 0)
-//            printf("\n");
-//       }
-        int a = 0;
+    readROMNEW("snake.gb", mem, &length);
+    
+    
+    //uint8_t *rom = readROM("Pokemon.gb", &length); // old reading function
+    printf("Snake ROM:\n");
+
     char title[16];
     for(int i = 0; i < 16; i++){
         title[i] = mem[i+0x134];
         printf("%c",title[i]); 
     }
     printf("\n");
+    printf("ROM size: %d\n",length);
     registers.dregs.PC = 0x101;
+    
     uint8_t firstOP = getop(mem, &registers);
     printf("first op code: %x\n", firstOP);
 
     uint16_t secOP = read2bytes(mem, 0x102);
     printf("first read two bytes: %x\n", secOP);
     
+    
+
+
+
+    int a = 0; //prevents program from dissaparing too quickly
     while(1){
       scanf("%d",&a);
     }
