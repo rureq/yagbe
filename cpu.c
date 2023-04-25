@@ -73,13 +73,16 @@ void operate(uint8_t opcode, char Loperand, char Roperand, union Registers *regs
     return;
 }
 void readROMNEW(char *filename, uint8_t *memory){
+    
     FILE* romFile = fopen(filename, "rb");
     if (romFile != NULL){
+        printf("beep\n");
         fseek(romFile, 0, SEEK_END);
         long int length = ftell(romFile);
         rewind(romFile); 
         fread(memory,1,length,romFile);
         fclose(romFile);
+        printf("%x\n",memory[1]);
     } 
     else{
         printf("Error reading ROM file\n");
@@ -110,17 +113,18 @@ uint8_t *initRAM(){
     uint8_t *RAM = malloc(sizeof(uint8_t)*16000);
     return RAM;
 };
-uint8_t *initmemory(){
-    uint8_t *mem = malloc(sizeof(uint8_t)*0xFFFF);
-    if(!mem){
+void initmemory(uint8_t **mem){
+    *mem = malloc(sizeof(uint8_t)*0xFFFF);
+    if(!*mem){
         printf("asfasf");
     }
-    return mem;
+    //return *mem;
 };
 
 int main(){
     union Registers registers;
-    uint8_t *mem = initmemory();
+    uint8_t *mem;
+    initmemory(&mem);
     readROMNEW("Pokemon.gb", mem);
     
     long int length = 0;
@@ -149,6 +153,6 @@ int main(){
       scanf("%d",&a);
     }
 
-    free(mem);
+    free(rom);
     return 0;
 }
