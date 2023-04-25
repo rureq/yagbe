@@ -70,10 +70,22 @@ union operation{
     };
 };
 
-void operate(uint8_t opcode, char Loperand, char Roperand, union Registers *regs){
-    if (opcode == 0x01)
+void perfop(uint8_t opcode, union Registers *regs, uint8_t *memory){
+    switch (opcode)
     {
-        
+        case 0x00: //NOP, 1,4, ----
+        {
+            break;
+        }
+        case 0x01: //LD BC, d16, 3, 12, ----
+        {
+
+            break;
+        }
+        default:
+        {
+            break;
+        }
     }
     return;
 }
@@ -87,7 +99,6 @@ void readROMNEW(char *filename, uint8_t *memory, long int *len){
         rewind(romFile); 
         fread(memory,1,length,romFile);
         fclose(romFile);
-        printf("ROM size: %i\n", length);
     } 
     else{
         printf("Error reading ROM file\n");
