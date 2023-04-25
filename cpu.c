@@ -113,22 +113,21 @@ uint8_t *initRAM(){
     uint8_t *RAM = malloc(sizeof(uint8_t)*16000);
     return RAM;
 };
-void initmemory(uint8_t **mem){
-    *mem = malloc(sizeof(uint8_t)*0xFFFF);
+uint8_t *initmemory(){
+    uint8_t *mem = malloc(sizeof(uint8_t)*0xFFFF);
     if(!*mem){
         printf("asfasf");
     }
-    //return *mem;
+    return mem;
 };
 
 int main(){
     union Registers registers;
-    uint8_t *mem;
-    initmemory(&mem);
+    uint8_t *mem = initmemory();
     readROMNEW("Pokemon.gb", mem);
     
     long int length = 0;
-    uint8_t *rom = readROM("Pokemon.gb", &length);
+    //uint8_t *rom = readROM("Pokemon.gb", &length);
        printf("Pokemon ROM:\n");
 //       for (int i = 0; i <length; i++){
 //        printf("0x%x ",rom[i]);
@@ -138,21 +137,21 @@ int main(){
         int a = 0;
     char title[16];
     for(int i = 0; i < 16; i++){
-        title[i] = rom[i+0x134];
+        title[i] = mem[i+0x134];
         printf("%c",title[i]); 
     }
     printf("\n");
     registers.dregs.PC = 0x101;
-    uint8_t firstOP = getop(rom, &registers);
+    uint8_t firstOP = getop(mem, &registers);
     printf("first op code: %x\n", firstOP);
 
-    uint16_t secOP = read2bytes(rom, 0x102);
+    uint16_t secOP = read2bytes(mem, 0x102);
     printf("first read two bytes: %x\n", secOP);
     
     while(1){
       scanf("%d",&a);
     }
 
-    free(rom);
+    free(mem);
     return 0;
 }
