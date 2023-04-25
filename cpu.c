@@ -83,6 +83,7 @@ void readROMNEW(char *filename, uint8_t *memory){
         fread(memory,1,length,romFile);
         fclose(romFile);
         printf("%x\n",memory[0]);
+        printf("length %i\n", length);
     } 
     else{
         printf("Error reading ROM file\n");
@@ -114,7 +115,7 @@ uint8_t *initRAM(){
     return RAM;
 };
 uint8_t *initmemory(){
-    uint8_t *mem = malloc(sizeof(uint8_t)*0xFFFF);
+    uint8_t *mem = malloc(sizeof(uint8_t)*0xFFFFF);
     if(!*mem){
         printf("asfasf");
     }
@@ -124,11 +125,11 @@ uint8_t *initmemory(){
 int main(){
     union Registers registers;
     uint8_t *mem = initmemory();
-    readROMNEW("Pokemon.gb", mem);
+    readROMNEW("snake.gb", mem);
     
     long int length = 0;
     //uint8_t *rom = readROM("Pokemon.gb", &length);
-       printf("Pokemon ROM:\n");
+       printf("Snake ROM:\n");
 //       for (int i = 0; i <length; i++){
 //        printf("0x%x ",rom[i]);
 //         if((i+1)%16 == 0)
