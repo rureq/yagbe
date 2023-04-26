@@ -25,9 +25,11 @@
 
 union Registers{
     struct regs{
+        bool Z, N, Hf, Cf;
         uint8_t A, F, B, C, D, E, H, L;
     } regs;
     struct dregs{
+        bool Z, N, Hf, Cf;
         uint16_t FA, CB, ED, LH, SP, PC;
     } dregs;
 };
@@ -54,11 +56,8 @@ void write2bytes(uint16_t address, uint8_t *memory, uint16_t data){
 };
 
 uint8_t getop(uint8_t *gamefile, union Registers *regs){
-    return gamefile[regs->dregs.PC++];
+    return gamefile[regs->dregs.PC];
 }
-
-
-enum operations{NOP, LD_BC_d16};
 
 union operation{
     struct op{
@@ -70,16 +69,50 @@ union operation{
     };
 };
 
+bool check4halfcarry(uint8_t a, uint8_t b){
+    if ((((a&0xf) + (b&0xf)) &0x10) == 0x10){
+        return true;
+    }
+    return false;
+}
+
 void perfop(uint8_t opcode, union Registers *regs, uint8_t *memory){
     switch (opcode)
     {
         case 0x00: //NOP, 1,4, ----
         {
+            regs->dregs.PC++;
             break;
         }
         case 0x01: //LD BC, d16, 3, 12, ----
         {
-
+            regs->dregs.CB = read2bytes(memory, memory[regs->dregs.PC+1]);
+            regs->dregs.PC += 3;   
+            break;
+        }
+        case 0x02: //LD (BC), A, 1,  8, ----
+        {
+            memory[read2bytes(memory, regs->dregs.CB)] = regs->regs.A;
+            regs->dregs.PC++;  
+            break;
+        }
+        case 0x03: //INC BC, 1,  8, ----
+        {
+            regs->dregs.CB++;
+            regs->dregs.PC++;
+            break;
+        }
+        case 0x04: //INC B, 1, 4, Z0H-
+        {
+            regs->regs.B++;
+            regs->dregs.PC++;
+            if (regs->regs.B == 0){
+                regs->regs.F |= 0b10000000;
+            }
+            regs->regs.F ^= 0b01000000;
+            if(check4halfcarry(regs->regs.B-1, 1)){
+                regs->regs.F |= 0b00100000;
+            }
             break;
         }
         default:
@@ -144,6 +177,7 @@ uint8_t *initmemory(){
 
 int main(){
     union Registers registers;
+    registers.regs.F = 0;
     uint8_t *mem = initmemory();
     long int length = 0;
     readROMNEW("snake.gb", mem, &length);
@@ -166,12 +200,16 @@ int main(){
 
     uint16_t secOP = read2bytes(mem, 0x102);
     printf("first read two bytes: %x\n", secOP);
-    
-    
+    registers.regs.Hf = 0;
+    printf("half carry: %d\n", registers.regs.Hf);
+    registers.regs.B = 31;
+    perfop(0x04, &registers, mem);
+    printf("result: %d\n", registers.regs.B);
+    printf("half carry: %d\n", (registers.regs.F&0b00100000)>>5); //extracts half carry bit from flag register
 
 
 
-    int a = 0; //prevents program from dissaparing too quickly
+    int a = 0; //prevents program from dissapearing too quickly
     while(1){
       scanf("%d",&a);
     }
