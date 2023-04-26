@@ -69,11 +69,36 @@ union operation{
     };
 };
 
-bool check4halfcarry(uint8_t a, uint8_t b){
+bool check4halfcarry(uint8_t a, uint8_t b){ //https://robdor.com/2016/08/10/gameboy-emulator-half-carry-flag/
     if ((((a&0xf) + (b&0xf)) &0x10) == 0x10){
         return true;
     }
     return false;
+}
+
+//does this work as intended?
+bool check4halfcarrysub(uint8_t a, uint8_t b){ //https://www.reddit.com/r/EmuDev/comments/knm196/gameboy_half_carry_flag_during_subtract_operation/
+    if ((((a&0xf) - (b&0xf)) &0x10) == 0x10){
+        return true;
+    }
+    return false;
+}
+
+
+void setZflag(union Registers *regs){
+    regs->regs.F |= 0b10000000;
+}
+void setNflag(union Registers *regs){
+    regs->regs.F |= 0b01000000;
+}
+void unsetNflag(union Registers *regs){ //check if works
+    regs->regs.F &= ~(0b01000000);
+}
+void setHflag(union Registers *regs){
+    regs->regs.F |= 0b00100000;
+}
+void setCflag(union Registers *regs){
+    regs->regs.F |= 0b00010000;
 }
 
 void perfop(uint8_t opcode, union Registers *regs, uint8_t *memory){
@@ -104,16 +129,29 @@ void perfop(uint8_t opcode, union Registers *regs, uint8_t *memory){
         }
         case 0x04: //INC B, 1, 4, Z0H-
         {
+            if(check4halfcarry(regs->regs.B, 1)){
+                setHflag(regs);
+            }
             regs->regs.B++;
             regs->dregs.PC++;
             if (regs->regs.B == 0){
-                regs->regs.F |= 0b10000000;
+                setZflag(regs);
             }
-            regs->regs.F ^= 0b01000000;
-            if(check4halfcarry(regs->regs.B-1, 1)){
-                regs->regs.F |= 0b00100000;
+            unsetNflag(regs);
+            break;
+        }
+        case 0x05: //DEC B, 1, 4, Z1H-
+        {   
+            if(check4halfcarrysub(regs->regs.B, 1)){ //does it work as it should?
+                setHflag(regs);
             }
             break;
+            regs->regs.B--;
+            regs->dregs.PC++;
+            if (regs->regs.B == 0){
+                setZflag(regs);
+            }
+            setNflag(regs);
         }
         default:
         {
@@ -201,13 +239,23 @@ int main(){
     uint16_t secOP = read2bytes(mem, 0x102);
     printf("first read two bytes: %x\n", secOP);
     registers.regs.Hf = 0;
-    printf("half carry: %d\n", registers.regs.Hf);
-    registers.regs.B = 31;
-    perfop(0x04, &registers, mem);
+    printf("half carry: %d\n", (registers.regs.F&0b00100000)>>5);
+    registers.regs.B = 32;
+    perfop(0x05, &registers, mem);
     printf("result: %d\n", registers.regs.B);
     printf("half carry: %d\n", (registers.regs.F&0b00100000)>>5); //extracts half carry bit from flag register
-
-
+    printf("0: 0%x\n",mem[0]);
+    printf("1: 0%x\n",mem[1]);
+    printf("2: 0%x\n",mem[2]);
+    mem[0] = 0x01;
+    mem[1] = 0x50;
+    mem[2] = 0x01;
+    registers.dregs.PC = 0;
+    perfop(0x01,&registers,&mem);
+    printf("BC: 0%x\n",registers.dregs.CB);
+    printf("0: 0%x\n",mem[0]);
+    printf("1: 0%x\n",mem[1]);
+    printf("2: 0%x\n",mem[2]);
 
     int a = 0; //prevents program from dissapearing too quickly
     while(1){
