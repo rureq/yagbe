@@ -1,3 +1,6 @@
+*.gb
+.vscode
+
 # Prerequisites
 *.d
 
